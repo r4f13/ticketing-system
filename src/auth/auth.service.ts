@@ -1,6 +1,6 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { DatabaseService } from 'src/database/database.service';
-import { AuthDto } from './dto';
+import { loginDto, registerDto } from './dto';
 import * as argon from 'argon2';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { JwtService } from '@nestjs/jwt';
@@ -10,13 +10,14 @@ import { ConfigService } from '@nestjs/config';
 export class AuthService {
     constructor(private readonly databaseService: DatabaseService, private readonly jwt:JwtService, private readonly config:ConfigService){}
 
-    async register(dto:AuthDto){
+    async register(dto:registerDto){
         try{
             const password = await argon.hash(dto.password);
             const user =  await this.databaseService.user.create({
                 data: {
                     username:dto.username.toLowerCase(),
-                    password
+                    password,
+                    role:dto.role
                 }
             });
 
@@ -27,7 +28,7 @@ export class AuthService {
         } 
     }
 
-    async login(dto:AuthDto){
+    async login(dto:loginDto){
         const user = await this.databaseService.user.findUnique({
             where:{username:dto.username.toLowerCase()}
         })
