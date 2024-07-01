@@ -13,17 +13,57 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id        Int      @id @default(autoincrement())
-  username  String   @unique
-  role      Role     @default(CUSTOMER)
-  password  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
 enum Role {
   CUSTOMER
   AGENT
   ADMIN
+}
+
+model User {
+  id       Int    @id @default(autoincrement())
+  username String @unique
+  role     Role   @default(CUSTOMER)
+  password String
+
+  requestedTickets Ticket[] @relation("RequestedTickets")
+  assignedTickets  Ticket[] @relation("AssignedTickets")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Ticket {
+  id          Int    @id @default(autoincrement())
+  subject     String
+  description String
+
+  statusId Int
+  status   Status @relation(fields: [statusId], references: [id])
+
+  priorityId Int
+  priority   Priority @relation(fields: [priorityId], references: [id])
+
+  requesterId Int
+  requester   User @relation("RequestedTickets", fields: [requesterId], references: [id])
+
+  agentId Int
+  agent   User @relation("AssignedTickets", fields: [agentId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Status {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String
+  Ticket      Ticket[]
+}
+
+model Priority {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String
+  expiredAt   DateTime
+  Ticket      Ticket[]
 }
