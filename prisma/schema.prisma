@@ -46,8 +46,8 @@ model Ticket {
   requesterId Int
   requester   User @relation("RequestedTickets", fields: [requesterId], references: [id])
 
-  agentId Int
-  agent   User @relation("AssignedTickets", fields: [agentId], references: [id])
+  agentId Int?
+  agent   User? @relation("AssignedTickets", fields: [agentId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -56,14 +56,14 @@ model Ticket {
 model Status {
   id          Int      @id @default(autoincrement())
   name        String
-  description String
+  description String?
   Ticket      Ticket[]
 }
 
 model Priority {
   id          Int      @id @default(autoincrement())
   name        String
-  description String
-  expiredAt   DateTime
+  description String?
+  expiredAt   DateTime?
   Ticket      Ticket[]
 }
