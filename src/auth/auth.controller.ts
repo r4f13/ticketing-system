@@ -1,4 +1,4 @@
-import { Body, Controller, Post, SetMetadata, UseGuards, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, ForbiddenException, Post, SetMetadata, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
 import { loginDto, registerDto } from './dto';
 import { AuthService } from './auth.service';
 import { User } from './decorator/user.decorator';
@@ -11,8 +11,9 @@ export class AuthController {
     @UseGuards(ReadonlyJwtGuard)
     @Post('register')
     register(@User() user,@Body(ValidationPipe) dto:registerDto){
-        if(!user || user.role!="ADMIN")dto.role='CUSTOMER';
-        
+        if(!user || dto.role=="CUSTOMER")dto.role="CUSTOMER";
+        else if(user.role && user.role!="ADMIN")throw new UnauthorizedException();
+
         return this.authService.register(dto);
     }
 
