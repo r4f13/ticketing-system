@@ -6,6 +6,18 @@ import { CreateTicketDto } from './dto';
 export class TicketService {
     constructor(private readonly databaseService: DatabaseService) { }
 
+    async getAll(){
+      return await this.databaseService.ticket.findMany();
+    }
+
+    async getByRequesterId(requesterId:number){
+      return await this.databaseService.ticket.findMany({where:{requesterId}});
+    }
+
+    async getByAgentId(agentId:number){
+      return await this.databaseService.ticket.findMany({where:{agentId}});
+    }
+
     async create(requesterId:number,dto:CreateTicketDto){
         return this.databaseService.ticket.create({
             data: {
