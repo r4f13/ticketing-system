@@ -9,6 +9,13 @@ export class TicketController {
     constructor(private readonly ticketService: TicketService){}
 
     @UseGuards(JwtGuard)
+    @Get(':id')
+    getOne(@User() user, @Param('id',ParseIntPipe) ticketId:number){
+        if(user.role=="ADMIN")return this.ticketService.getOne(ticketId); 
+        return this.ticketService.getOne(ticketId,user.id);
+    }
+
+    @UseGuards(JwtGuard)
     @Get()
     getAll(@User() user){
         switch(user.role){

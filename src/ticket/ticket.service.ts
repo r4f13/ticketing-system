@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { DatabaseService } from 'src/database/database.service';
 import { CreateTicketDto } from './dto';
 
@@ -6,6 +6,14 @@ import { CreateTicketDto } from './dto';
 export class TicketService {
     constructor(private readonly databaseService: DatabaseService) { }
 
+    async getOne(ticketId:number,nonAdminUserId?:number){
+      const ticket=await this.databaseService.ticket.findUnique({where:{id:ticketId}});
+      if(!ticket)throw new NotFoundException('Ticket not found');
+
+      if(nonAdminUserId===undefined || ticket.requesterId==nonAdminUserId || ticket.agentId==nonAdminUserId)return ticket;
+      throw new UnauthorizedException();
+    }
+    
     async getAll(){
       return await this.databaseService.ticket.findMany();
     }
