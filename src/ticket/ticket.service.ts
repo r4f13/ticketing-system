@@ -6,6 +6,13 @@ import { CreateTicketDto } from './dto';
 export class TicketService {
     constructor(private readonly databaseService: DatabaseService) { }
 
+    private toInteger(obj){
+      Object.keys(obj).forEach(prop=>{
+        obj[prop]=isNaN(obj[prop])?obj[prop]:parseInt(obj[prop]);
+      })
+      return obj
+    }
+
     async getOne(ticketId:number,nonAdminUserId?:number){
       const ticket=await this.databaseService.ticket.findUnique({where:{id:ticketId}});
       if(!ticket)throw new NotFoundException('Ticket not found');
@@ -14,16 +21,19 @@ export class TicketService {
       throw new UnauthorizedException();
     }
     
-    async getAll(){
-      return await this.databaseService.ticket.findMany();
+    async getAll(filter:object){
+      if(filter)filter=this.toInteger(filter);
+      return await this.databaseService.ticket.findMany({where:filter});
     }
 
-    async getByRequesterId(requesterId:number){
-      return await this.databaseService.ticket.findMany({where:{requesterId}});
+    async getByRequesterId(requesterId:number,filter?:object){
+      if(filter)filter=this.toInteger(filter);
+      return await this.databaseService.ticket.findMany({where:{requesterId,...filter}});
     }
 
-    async getByAgentId(agentId:number){
-      return await this.databaseService.ticket.findMany({where:{agentId}});
+    async getByAgentId(agentId:number,filter?:object){
+      if(filter)filter=this.toInteger(filter);
+      return await this.databaseService.ticket.findMany({where:{agentId,...filter}});
     }
 
     async create(requesterId:number,dto:CreateTicketDto){

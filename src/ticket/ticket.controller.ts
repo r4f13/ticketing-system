@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, UseGuards, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query, UseGuards, ValidationPipe } from '@nestjs/common';
 import { TicketService } from './ticket.service';
 import { CreateTicketDto } from './dto';
 import { User } from 'src/auth/decorator/user.decorator';
@@ -17,14 +17,14 @@ export class TicketController {
 
     @UseGuards(JwtGuard)
     @Get()
-    getAll(@User() user){
+    getAll(@User() user,@Query() filter){
         switch(user.role){
             case "ADMIN":
-            return this.ticketService.getAll();
+            return this.ticketService.getAll(filter);
             case "AGENT":
-            return this.ticketService.getByAgentId(user.id);
+            return this.ticketService.getByAgentId(user.id,filter);
             case "CUSTOMER":
-            return this.ticketService.getByRequesterId(user.id);
+            return this.ticketService.getByRequesterId(user.id,filter);
         }
         
     }
