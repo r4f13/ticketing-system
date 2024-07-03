@@ -1,8 +1,10 @@
-import { Body, Controller, ForbiddenException, Post, SetMetadata, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, ForbiddenException, Get, Post, SetMetadata, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
 import { loginDto, registerDto } from './dto';
 import { AuthService } from './auth.service';
 import { User } from './decorator/user.decorator';
 import { ReadonlyJwtGuard } from './guard/readonly.jwt.guard';
+import { JwtGuard } from './guard/jwt.guard';
+import { get } from 'http';
 
 @Controller('auth')
 export class AuthController {
@@ -21,5 +23,11 @@ export class AuthController {
     @Post('login')
     login(@Body(ValidationPipe) dto:loginDto){
         return this.authService.login(dto);
+    }
+
+    @UseGuards(JwtGuard)
+    @Get()
+    getInfo(@User() user){
+        return user;
     }
 }

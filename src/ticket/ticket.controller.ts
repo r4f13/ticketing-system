@@ -22,9 +22,9 @@ export class TicketController {
             case "ADMIN":
             return this.ticketService.getAll();
             case "AGENT":
-            return this.ticketService.getByAgentId(user.sub);
+            return this.ticketService.getByAgentId(user.id);
             case "CUSTOMER":
-            return this.ticketService.getByRequesterId(user.sub);
+            return this.ticketService.getByRequesterId(user.id);
         }
         
     }
