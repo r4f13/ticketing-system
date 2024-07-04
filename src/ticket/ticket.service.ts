@@ -44,13 +44,16 @@ export class TicketService {
     }
 
     async create(requesterId:number,dto:CreateTicketDto){
+      const expiresIn=(await this.databaseService.priority.findUnique({where:{id:dto.priorityId}})).expiresIn;
+
         return this.databaseService.ticket.create({
             data: {
               subject: dto.subject,
               description: dto.description,
               status: {connect:{id:dto.statusId}},
               priority: {connect:{id:dto.priorityId}},
-              requester: {connect:{id:requesterId}}
+              requester: {connect:{id:requesterId}},
+              expiredAt:  new Date(new Date().getTime()+expiresIn)
             }
           })
     }

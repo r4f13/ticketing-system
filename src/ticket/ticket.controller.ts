@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, Query, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
 import { TicketService } from './ticket.service';
 import { CreateTicketDto, EditTicketDto } from './dto';
 import { User } from 'src/auth/decorator/user.decorator';
@@ -31,7 +31,7 @@ export class TicketController {
 
     @UseGuards(JwtGuard)
     @Post()
-    create(@User('sub') userId:number,@Body(ValidationPipe) dto:CreateTicketDto){
+    create(@User('id') userId:number,@Body(ValidationPipe) dto:CreateTicketDto){
         return this.ticketService.create(userId,dto);
     }
 

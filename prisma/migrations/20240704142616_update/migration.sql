@@ -3,10 +3,11 @@ CREATE TABLE "Ticket" (
     "id" SERIAL NOT NULL,
     "subject" TEXT NOT NULL,
     "description" TEXT NOT NULL,
-    "statusId" INTEGER NOT NULL,
+    "statusId" INTEGER NOT NULL DEFAULT 1,
     "priorityId" INTEGER NOT NULL,
     "requesterId" INTEGER NOT NULL,
     "agentId" INTEGER,
+    "expiredAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -16,6 +17,7 @@ CREATE TABLE "Ticket" (
 -- CreateTable
 CREATE TABLE "Status" (
     "id" SERIAL NOT NULL,
+    "priorityIndex" INTEGER NOT NULL,
     "name" TEXT NOT NULL,
     "description" TEXT,
 
@@ -25,9 +27,10 @@ CREATE TABLE "Status" (
 -- CreateTable
 CREATE TABLE "Priority" (
     "id" SERIAL NOT NULL,
+    "priorityIndex" INTEGER NOT NULL,
     "name" TEXT NOT NULL,
     "description" TEXT,
-    "expiredAt" TIMESTAMP(3),
+    "expiresIn" INTEGER,
 
     CONSTRAINT "Priority_pkey" PRIMARY KEY ("id")
 );
