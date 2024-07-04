@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query, UseGuards, ValidationPipe } from '@nestjs/common';
 import { TicketService } from './ticket.service';
-import { CreateTicketDto } from './dto';
+import { CreateTicketDto, EditTicketDto } from './dto';
 import { User } from 'src/auth/decorator/user.decorator';
 import { JwtGuard } from 'src/auth/guard/jwt.guard';
 
@@ -33,5 +33,11 @@ export class TicketController {
     @Post()
     create(@User('sub') userId:number,@Body(ValidationPipe) dto:CreateTicketDto){
         return this.ticketService.create(userId,dto);
+    }
+
+    @UseGuards(JwtGuard)
+    @Patch(':id')
+    edit(@Param('id',ParseIntPipe) ticketId:number,@User() user,@Body(ValidationPipe) dto:EditTicketDto){
+        return this.ticketService.edit(ticketId,dto,{id:user.id,role:user.role});
     }
 }

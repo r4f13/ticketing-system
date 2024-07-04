@@ -37,7 +37,7 @@ model Ticket {
   subject     String
   description String
 
-  statusId Int
+  statusId Int    @default(1)
   status   Status @relation(fields: [statusId], references: [id])
 
   priorityId Int
@@ -61,9 +61,10 @@ model Status {
 }
 
 model Priority {
-  id          Int      @id @default(autoincrement())
-  name        String
-  description String?
-  expiredAt   DateTime?
-  Ticket      Ticket[]
+  id            Int      @id @default(autoincrement())
+  priorityIndex Int
+  name          String
+  description   String?
+  expiredAt     DateTime?
+  Ticket        Ticket[]
 }

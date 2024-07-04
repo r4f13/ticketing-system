@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { DatabaseService } from 'src/database/database.service';
-import { CreateTicketDto } from './dto';
+import { CreateTicketDto, EditTicketDto } from './dto';
+import { Role } from '@prisma/client';
 
 @Injectable()
 export class TicketService {
@@ -11,6 +12,12 @@ export class TicketService {
         obj[prop]=isNaN(obj[prop])?obj[prop]:parseInt(obj[prop]);
       })
       return obj
+    }
+
+    private authorizeDto(obj,dto){
+      Object.keys(obj).forEach(prop=>{
+        if(!dto.includes(prop))throw new UnauthorizedException(`Unauthorized to edit ${prop}`);
+      })
     }
 
     async getOne(ticketId:number,nonAdminUserId?:number){
@@ -46,5 +53,33 @@ export class TicketService {
               requester: {connect:{id:requesterId}}
             }
           })
+    }
+
+    async edit(ticketId:number,dto:EditTicketDto,user:{id:number,role:Role}){
+      const ticket=await this.databaseService.ticket.findUnique({where:{id:ticketId}});
+      if(!ticket)throw new NotFoundException('Ticket not found');
+
+      if(user.role=="ADMIN"){
+        return await this.databaseService.ticket.update({
+          where: {id:ticketId},
+          data: dto
+        })
+      }
+      
+      if(user.role=="CUSTOMER" &&  ticket.requesterId==user.id){
+        this.authorizeDto(dto,['subject','description']);
+        return await this.databaseService.ticket.update({
+          where: {id:ticketId},
+          data: dto
+        })
+      }
+
+      if(user.role=="AGENT" &&  ticket.agentId==user.id){
+        this.authorizeDto(dto,['statusId']);
+        return await this.databaseService.ticket.update({
+          where: {id:ticketId},
+          data: dto
+        })
+      }
     }
 }
