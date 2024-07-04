@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { DatabaseService } from 'src/database/database.service';
 import { CreateTicketDto, EditTicketDto } from './dto';
 import { Role } from '@prisma/client';
@@ -67,7 +67,7 @@ export class TicketService {
       }
       
       if(user.role=="CUSTOMER" &&  ticket.requesterId==user.id){
-        this.authorizeDto(dto,['subject','description']);
+        this.authorizeDto(dto,['subject','description','priorityId']);
         return await this.databaseService.ticket.update({
           where: {id:ticketId},
           data: dto
@@ -75,11 +75,23 @@ export class TicketService {
       }
 
       if(user.role=="AGENT" &&  ticket.agentId==user.id){
-        this.authorizeDto(dto,['statusId']);
+        this.authorizeDto(dto,['statusId','priorityId']);
         return await this.databaseService.ticket.update({
           where: {id:ticketId},
           data: dto
         })
       }
+    }
+
+    async assign(ticketId:number,agentId:number){
+      const agent=await this.databaseService.user.findUnique({where:{id:agentId}});
+      if(!agent)throw new NotFoundException('Agent not found');
+
+      if(agent.role=="CUSTOMER")throw new ForbiddenException("Unable to assign ticket to a customer");
+
+      return await this.databaseService.ticket.update({
+        where: {id:ticketId},
+        data: {agentId,statusId:2}
+      })
     }
 }

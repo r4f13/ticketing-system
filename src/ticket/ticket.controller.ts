@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query, UseGuards, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
 import { TicketService } from './ticket.service';
 import { CreateTicketDto, EditTicketDto } from './dto';
 import { User } from 'src/auth/decorator/user.decorator';
@@ -39,5 +39,12 @@ export class TicketController {
     @Patch(':id')
     edit(@Param('id',ParseIntPipe) ticketId:number,@User() user,@Body(ValidationPipe) dto:EditTicketDto){
         return this.ticketService.edit(ticketId,dto,{id:user.id,role:user.role});
+    }
+
+    @UseGuards(JwtGuard)
+    @Get(':ticketId/assign/:agentId')
+    assign(@User('role') userRole, @Param('ticketId',ParseIntPipe) ticketId:number, @Param('agentId',ParseIntPipe) agentId:number){
+        if(userRole!=="ADMIN")throw new UnauthorizedException();
+        return this.ticketService.assign(ticketId,agentId);
     }
 }
