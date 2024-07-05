@@ -1,4 +1,4 @@
-import { IsString,IsNotEmpty, IsNumber } from "class-validator";
+import { IsString,IsNotEmpty, IsNumber, IsOptional } from "class-validator";
 
 export class CreateTicketDto{
     @IsString()
@@ -10,7 +10,7 @@ export class CreateTicketDto{
     description: string;
 
     @IsNumber()
-    @IsNotEmpty()
+    @IsOptional()
     statusId: number;
 
     @IsNumber()

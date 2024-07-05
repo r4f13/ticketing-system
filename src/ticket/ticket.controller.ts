@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, Query, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
 import { TicketService } from './ticket.service';
 import { CreateTicketDto, EditTicketDto } from './dto';
 import { User } from 'src/auth/decorator/user.decorator';
@@ -31,14 +31,21 @@ export class TicketController {
 
     @UseGuards(JwtGuard)
     @Post()
-    create(@User('id') userId:number,@Body(ValidationPipe) dto:CreateTicketDto){
-        return this.ticketService.create(userId,dto);
+    create(@User() user,@Body(ValidationPipe) dto:CreateTicketDto){
+        return this.ticketService.create(dto,{id:user.id,role:user.role});
     }
 
     @UseGuards(JwtGuard)
     @Patch(':id')
     edit(@Param('id',ParseIntPipe) ticketId:number,@User() user,@Body(ValidationPipe) dto:EditTicketDto){
         return this.ticketService.edit(ticketId,dto,{id:user.id,role:user.role});
+    }
+
+    @UseGuards(JwtGuard)
+    @Delete(':id')
+    delete(@Param('id',ParseIntPipe) ticketId:number,@User() user){
+        if(user.role=="AGENT")throw new UnauthorizedException();
+        return this.ticketService.delete(ticketId,{id:user.id,role:user.role});
     }
 
     @UseGuards(JwtGuard)
