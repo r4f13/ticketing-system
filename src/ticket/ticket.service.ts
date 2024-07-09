@@ -23,10 +23,10 @@ export class TicketService {
 
     private async refresh(tickets:Ticket|Ticket[]){
       if(!Array.isArray(tickets))tickets=[tickets];
-
+      
       const refreshedTicket=[];
       for(const ticket of tickets){
-        let temp=(ticket.expiredAt.getTime()<=new Date().getTime())?
+        let temp= !ticket.expiredAt || (ticket.expiredAt.getTime()<=new Date().getTime())?
           await this.databaseService.ticket.update({
             where: {id:ticket.id},
             data: {
@@ -54,12 +54,12 @@ export class TicketService {
 
     async getByRequesterId(requesterId:number,filter?:object){
       if(filter)filter=this.toInteger(filter);
-      return await this.databaseService.ticket.findMany({where:{requesterId,...filter}});
+      return this.refresh(await this.databaseService.ticket.findMany({where:{requesterId,...filter}}));
     }
 
     async getByAgentId(agentId:number,filter?:object){
       if(filter)filter=this.toInteger(filter);
-      return await this.databaseService.ticket.findMany({where:{agentId,...filter}});
+      return this.refresh(await this.databaseService.ticket.findMany({where:{agentId,...filter}}));
     }
 
     async create(dto:CreateTicketDto,user){

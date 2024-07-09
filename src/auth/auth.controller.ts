@@ -13,8 +13,7 @@ export class AuthController {
     @UseGuards(ReadonlyJwtGuard)
     @Post('register')
     register(@User() user,@Body(ValidationPipe) dto:registerDto){
-        if(!user || !dto.role)dto.role="CUSTOMER";
-        if(dto.role=="CUSTOMER" || user && user.role=="ADMIN") return this.authService.register(dto);
+        if(!dto.role || dto.role=="CUSTOMER" || user && user.role=="ADMIN") return this.authService.register(dto);
         else{
             throw new UnauthorizedException();
         }  

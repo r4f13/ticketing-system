@@ -27,6 +27,7 @@ model User {
 
   requestedTickets Ticket[] @relation("RequestedTickets")
   assignedTickets  Ticket[] @relation("AssignedTickets")
+  comments          Comment[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -49,6 +50,8 @@ model Ticket {
   agentId Int?
   agent   User? @relation("AssignedTickets", fields: [agentId], references: [id])
 
+  comments Comment[]
+
   expiredAt DateTime?
 
   createdAt DateTime @default(now())
@@ -70,4 +73,17 @@ model Priority {
   description   String?
   expiresIn     Int?
   Ticket        Ticket[]
+}
+
+model Comment {
+  id            Int      @id @default(autoincrement())
+  message       String
+
+  senderId      Int
+  sender        User      @relation(fields: [senderId], references: [id])
+  ticketId      Int
+  ticket        Ticket    @relation(fields: [ticketId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
