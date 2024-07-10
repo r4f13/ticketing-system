@@ -117,7 +117,7 @@ export class TicketService {
       }
       
       if(user.role=="CUSTOMER" &&  ticket.requesterId==user.id){
-        this.authorizeDto(dto,['subject','description','priorityId']);
+        this.authorizeDto(dto,['subject','description','priorityId','expiredAt']);
         return await this.databaseService.ticket.update({
           where: {id:ticketId},
           data: dto
