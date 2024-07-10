@@ -8,11 +8,28 @@ import { ConfigService } from '@nestjs/config';
 export class TicketService {
     constructor(private readonly databaseService: DatabaseService, private readonly config:ConfigService) { }
 
-    private toInteger(obj){
-      Object.keys(obj).forEach(prop=>{
-        obj[prop]=isNaN(obj[prop])?obj[prop]:parseInt(obj[prop]);
+    private orderBy={
+      newest:{
+        id:'desc'
+      },
+      priority:{
+        priority:{
+          priorityIndex:'desc'
+        }
+      }
+    }
+
+    private validateFilter(filter){
+      let sort='newest';
+      if(filter.sort){
+        sort=filter.sort;
+        delete filter.sort
+      }
+
+      Object.keys(filter).forEach(prop=>{
+        filter[prop]=isNaN(filter[prop])?filter[prop]:parseInt(filter[prop]);
       })
-      return obj
+      return {where:filter,orderBy:sort}
     }
 
     private authorizeDto(obj,dto){
@@ -47,19 +64,28 @@ export class TicketService {
       throw new UnauthorizedException();
     }
     
-    async getAll(filter:object){
-      if(filter)filter=this.toInteger(filter);
-      return this.refresh(await this.databaseService.ticket.findMany({where:filter}));
+    async getAll(filter){
+      if(filter)filter=this.validateFilter(filter);
+      return this.refresh(await this.databaseService.ticket.findMany({
+        where:filter.where,
+        orderBy:this.orderBy[filter.orderBy]
+      }));
     }
 
-    async getByRequesterId(requesterId:number,filter?:object){
-      if(filter)filter=this.toInteger(filter);
-      return this.refresh(await this.databaseService.ticket.findMany({where:{requesterId,...filter}}));
+    async getByRequesterId(requesterId:number,filter?){
+      if(filter)filter=this.validateFilter(filter);
+      return this.refresh(await this.databaseService.ticket.findMany({
+        where:{requesterId,...filter.where},
+        orderBy:this.orderBy[filter.orderBy||'newest']
+      }));
     }
 
-    async getByAgentId(agentId:number,filter?:object){
-      if(filter)filter=this.toInteger(filter);
-      return this.refresh(await this.databaseService.ticket.findMany({where:{agentId,...filter}}));
+    async getByAgentId(agentId:number,filter?){
+      if(filter)filter=this.validateFilter(filter);
+      return this.refresh(await this.databaseService.ticket.findMany({
+        where:{agentId,...filter.where},
+        orderBy:this.orderBy[filter.orderBy||'newest']
+      }));
     }
 
     async create(dto:CreateTicketDto,user){

@@ -9,13 +9,15 @@ import { DatabaseModule } from './database/database.module';
 import { DatabaseService } from './database/database.service';
 import { TicketService } from './ticket/ticket.service';
 import { CommentModule } from './comment/comment.module';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [AuthModule,DatabaseModule,TicketModule,
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    CommentModule
+    CommentModule,
+    UserModule
   ],
   controllers: [AppController, TicketController],
   providers: [AppService, DatabaseService, TicketService],
