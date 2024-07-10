@@ -116,7 +116,7 @@ export class TicketService {
         })
       }
       
-      if(user.role=="CUSTOMER" &&  ticket.requesterId==user.id){
+      if(ticket.requesterId==user.id){
         this.authorizeDto(dto,['subject','description','priorityId','expiredAt']);
         return await this.databaseService.ticket.update({
           where: {id:ticketId},
@@ -124,7 +124,7 @@ export class TicketService {
         })
       }
 
-      if(user.role=="AGENT" &&  ticket.agentId==user.id){
+      if(ticket.agentId==user.id){
         this.authorizeDto(dto,['statusId','priorityId']);
         return await this.databaseService.ticket.update({
           where: {id:ticketId},
