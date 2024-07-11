@@ -54,7 +54,7 @@ ticket?
   sort= newest | priority | expiration &
   subject=string &
   description=string &
-  ... //User can input any available column inside the ticket table to filter it
+  ... //User can input more available column inside the ticket table to filter it
 ```
 - If user is ADMIN, return all ticket
 - If user is AGENT, return all assigned ticket
