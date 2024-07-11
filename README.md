@@ -1,73 +1,127 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
-
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
-
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
-
-## Description
-
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
-
-## Installation
-
-```bash
-$ npm install
+# Structure
+## Database schema
+![](newSchema.png)
+## Priority
+| id| name | description | expiresIn | priorityIndex|
+|-|-|-|-|-|
+| 1 | Low |-|-|1|
+| 2 | Medium |-|-|2|
+| 3 | High |-|-|3|
+| 4 | One hour |-| 3600000 |6|
+| 5 | One day |-| 86400000 |5|
+| 6 | one week |-| 604800000 |4|
+## Status
+| id| name | description | 
+|-|-|-|
+| 1 | Unassigned |-|
+| 2 | Waiting |-|
+| 3 | On progress |-|
+| 4 | Resolved |-|
+| 5 | Cancelled |-|
+| 6 | Overdue |-|
+## Role
+```
+enum Role{
+  ADMIN
+  AGENT
+  CUSTOMER
+}
 ```
 
-## Running the app
+# API
 
-```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+## auth
+### POST auth/register
+```ts
+{
+  username: string,
+  password: string,
+  role?: Role //Only ADMIN can change, Default: "CUSTOMER"
+}
+```
+### POST auth/login
+```ts
+{
+  username: string,
+  password: string,
+}
 ```
 
-## Test
-
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+## ticket  (🔒LOGIN REQUIRED)
+### GET ticket
+```url
+ticket?
+  sort= newest | priority | expiration &
+  subject=string &
+  description=string &
+  ... //User can input any available column inside the ticket table to filter it
 ```
+- If user is ADMIN, return all ticket
+- If user is AGENT, return all assigned ticket
+- If user is CUSTOMER, return all requested ticket
+### GET ticket/:id
+### POST ticket
+```ts
+{
+  subject: string,
+  description: string,
+  priorityId: number,
+  agentId?:number, //ADMIN ONLY, Default: null
+  statusId?: number, //ADMIN ONLY, Default: "Unassigned" 
+  expiredAt?: timestamp //Default: Date.now()+priority.expiresIn
+}
+```
+### PATCH ticket/:id
+```ts
+{
+  subject?: string, //ADMIN & requester ONLY
+  description?: string, //ADMIN & requester ONLY
+  priorityId?: number, //ADMIN only
+  agentId?:number, //ADMIN ONLY
+  statusId?: number, //ADMIN & assigned agent  ONLY
+  expiredAt?: timestamp //ADMIN ONLY
+}
+```
+### DELETE ticket/:id
+### GET ticket/:ticketId/assign/:agentId
+Automatically update the ticket agentId and change it's status to "waiting"
+### GET ticket/:ticketId/update/:statusId
+> ADMIN and assigned agent only
 
-## Support
+Update a ticket's status
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+## comment (🔒LOGIN REQUIRED)
+### GET comment/:id
+> ADMIN and comment sender only
 
-## Stay in touch
+Return a comment and it's property
+### GET comment/ticket/:ticketId
+> ADMIN, ticket requester, and assigned agent only
 
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+Return all comment inside a ticket
+### POST comment/ticket/:ticketId
+```ts
+{
+  message: string
+}
 
-## License
+```
+### DELETE comment/:id
+> ADMIN and comment sender only
 
-Nest is [MIT licensed](LICENSE).
+
+## user (🔒LOGIN REQUIRED)
+### GET user/self
+Return logged user info
+### GET user
+> ADMIN only
+
+Return all user
+### GET user/:role
+> ADMIN only
+
+Return all user by role
+### GET use/:userId/promote/:newRole
+> ADMIN only
+
+Update a user's role to newRole
