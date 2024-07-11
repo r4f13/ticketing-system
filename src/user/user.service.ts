@@ -6,7 +6,7 @@ import { DatabaseService } from 'src/database/database.service';
 export class UserService {
     constructor(private readonly databaseService: DatabaseService){}
 
-    async getAll(){
+    async getAll(filter={}){
         return await this.databaseService.user.findMany({
             select:{
                 id:true,
@@ -14,7 +14,8 @@ export class UserService {
                 role:true,
                 createdAt:true,
                 updatedAt:true
-            }
+            },
+            where:{...filter}
         });
     }
 

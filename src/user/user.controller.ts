@@ -1,4 +1,4 @@
-import { Controller, Delete, Get, Param, ParseIntPipe, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
+import { Controller, Delete, ForbiddenException, Get, Param, ParseIntPipe, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
 import { User } from 'src/auth/decorator/user.decorator';
 import { JwtGuard } from 'src/auth/guard/jwt.guard';
 import { UserService } from './user.service';
@@ -7,6 +7,12 @@ import { Role } from '@prisma/client';
 @Controller('user')
 export class UserController {
     constructor(private readonly userService: UserService){}
+    
+    @UseGuards(JwtGuard)
+    @Get('/self')
+    getSelf(@User() user){
+        return user;
+    }
 
     @UseGuards(JwtGuard)
     @Get('')
@@ -17,9 +23,13 @@ export class UserController {
     }
 
     @UseGuards(JwtGuard)
-    @Get('/self')
-    getSelf(@User() user){
-        return user;
+    @Get(':role')
+    getByRole(@User('role') userRole,@Param('role') role:string){
+        role=role.toUpperCase();
+        if(!(role=='ADMIN' || role=="AGENT" || role=="CUSTOMER"))throw new ForbiddenException("Invalid role")
+        if(userRole=='ADMIN')return this.userService.getAll({role});
+
+        throw new UnauthorizedException();
     }
 
     @UseGuards(JwtGuard)

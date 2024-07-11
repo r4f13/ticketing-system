@@ -16,6 +16,9 @@ export class TicketService {
         priority:{
           priorityIndex:'desc'
         }
+      },
+      expiration:{
+        expiredAt:'desc'
       }
     }
 
@@ -43,7 +46,7 @@ export class TicketService {
       
       const refreshedTicket=[];
       for(const ticket of tickets){
-        let temp= !ticket.expiredAt || (ticket.expiredAt.getTime()<=new Date().getTime())?
+        let temp= ticket.expiredAt && (ticket.expiredAt.getTime()<=new Date().getTime())?
           await this.databaseService.ticket.update({
             where: {id:ticket.id},
             data: {
@@ -68,22 +71,6 @@ export class TicketService {
       if(filter)filter=this.validateFilter(filter);
       return this.refresh(await this.databaseService.ticket.findMany({
         where:filter.where,
-        orderBy:this.orderBy[filter.orderBy]
-      }));
-    }
-
-    async getByRequesterId(requesterId:number,filter?){
-      if(filter)filter=this.validateFilter(filter);
-      return this.refresh(await this.databaseService.ticket.findMany({
-        where:{requesterId,...filter.where},
-        orderBy:this.orderBy[filter.orderBy||'newest']
-      }));
-    }
-
-    async getByAgentId(agentId:number,filter?){
-      if(filter)filter=this.validateFilter(filter);
-      return this.refresh(await this.databaseService.ticket.findMany({
-        where:{agentId,...filter.where},
         orderBy:this.orderBy[filter.orderBy||'newest']
       }));
     }
@@ -117,7 +104,7 @@ export class TicketService {
       }
       
       if(ticket.requesterId==user.id){
-        this.authorizeDto(dto,['subject','description','priorityId','expiredAt']);
+        this.authorizeDto(dto,['subject','description']);
         return await this.databaseService.ticket.update({
           where: {id:ticketId},
           data: dto
@@ -125,7 +112,7 @@ export class TicketService {
       }
 
       if(ticket.agentId==user.id){
-        this.authorizeDto(dto,['statusId','priorityId']);
+        this.authorizeDto(dto,['statusId']);
         return await this.databaseService.ticket.update({
           where: {id:ticketId},
           data: dto
@@ -154,5 +141,21 @@ export class TicketService {
           statusId:Number(this.config.get('STATUS_WAITING_ID'))
         }
       })
+    }
+
+    async update(ticketId:number,statusId:number,user:{id:number,role:Role}){
+      const ticket=await this.databaseService.ticket.findUnique({where:{id:ticketId}});
+      if(!ticket)throw new NotFoundException('Ticket not found');
+
+      if(user.role=='ADMIN' || ticket.agentId==user.id){
+        return this.databaseService.ticket.update({
+          where:{id:ticketId},
+          data:{
+            statusId
+          }
+        })
+      }
+      
+      throw new UnauthorizedException();
     }
 }

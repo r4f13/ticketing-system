@@ -22,9 +22,9 @@ export class TicketController {
             case "ADMIN":
             return this.ticketService.getAll(filter);
             case "AGENT":
-            return this.ticketService.getByAgentId(user.id,filter);
+            return this.ticketService.getAll({...filter,agentId:user.id});
             case "CUSTOMER":
-            return this.ticketService.getByRequesterId(user.id,filter);
+            return this.ticketService.getAll({...filter,requesterId:user.id});
         }
         
     }
@@ -53,5 +53,11 @@ export class TicketController {
     assign(@User('role') userRole, @Param('ticketId',ParseIntPipe) ticketId:number, @Param('agentId',ParseIntPipe) agentId:number){
         if(userRole!=="ADMIN")throw new UnauthorizedException();
         return this.ticketService.assign(ticketId,agentId);
+    }
+
+    @UseGuards(JwtGuard)
+    @Get(':ticketId/update/:statusId')
+    update(@User('') user, @Param('ticketId',ParseIntPipe) ticketId:number, @Param('statusId',ParseIntPipe) statusId:number){
+        return this.ticketService.update(ticketId,statusId,{id:user.id,role:user.role});
     }
 }
